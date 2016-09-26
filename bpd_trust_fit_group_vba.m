@@ -5,9 +5,12 @@ function bpd_trust_fit_group_vba
 %on the machine you are currently working on!
 os = computer;
 if strcmp(os(1:end-2),'PCWIN')
-    data_dir = 'E:/Users/wilsonj3/Google Drive/skinner/data - IP/eprime/bpd_trust/';
-    files = glob([data_dir '*/*_scan_*.txt']);
-    local_data_dir = 'E:\data\bdp_trust\vba_out'; %Where the vba workspace will be saved
+    %data_dir = 'E:/Users/wilsonj3/Google Drive/skinner/data - IP/eprime/bpd_trust/';
+    data_dir='subjects';
+    files=glob('subjects/*/*_scan_*.txt');
+    %files = glob([data_dir '/*/*scan_*.txt']);
+    %local_data_dir = 'E:\data\bdp_trust\vba_out'; %Where the vba workspace will be saved
+    local_data_dir = '';
     %processed_files = glob('E:/Users/wilsonj3/Google Drive/skinner/data - IP/eprime/bpd_trust/*/*.mat');
 else
     [~, me] = system('whoami');
@@ -18,6 +21,8 @@ else
         local_data_dir = '';
     else
         files = glob('?');
+      
+
     end
 end
 
@@ -49,11 +54,11 @@ regret = 0;
 
 %% main loop
 L = [];
-parfor i = 1:length(ids)
+for i = 1:length(ids)
     filename=files{i};
     fprintf('File processing: %s\n', filename);
     id = ids(i);
-    datalocation = [data_dir num2str(id)];
+    datalocation = [data_dir '/' num2str(id)];
     %[posterior, out] = bpd_trust_Qlearning_ushifted(id, counter, multisession, fixed_params_across_runs, sigma_kappa, reputation_sensitive, humanity, valence_p, valence_n, assymetry_choices, regret);
     [posterior, out] = bpd_trust_Qlearning_ushifted(id, counter, datalocation,...
         'multisession', multisession, 'fixed', fixed_params_across_runs,...
@@ -62,6 +67,12 @@ parfor i = 1:length(ids)
         'assymetry_choices', assymetry_choices, 'regret', regret, ...
         'local_data_dir', local_data_dir);
     L(i) = out.F;
+    
+    
+    b=bpd_trustmakeregressor_group(id);
+    
 end
+
+
 L_name = sprintf('L_counter%d_multisession%d_fixed%d_SigmaKappa%d_reputation%d_humanity%d_valence_p%d_valence_n%d_assymetry_choice%d_regret%d',counter, multisession, fixed_params_across_runs, sigma_kappa, reputation_sensitive, humanity, valence_p, valence_n, assymetry_choices, regret);
 save(char(L_name), 'L'); %Just saveing L's

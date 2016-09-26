@@ -102,7 +102,12 @@ b.trustee4 = {trustee4, share4_50, share4_88, share4_25, share4Total};
 % %share responses for different phases of the task
 for ind=start+1:trials
     if strcmp(trustee1, b.identity(ind)) && strcmp(b.PartDecides(ind), 'share')
-        share1Total = share1Total + 1;
+        share1Total = share1Total + 1; 
+        
+        if iscell(b.Reversal)
+            stop=1;
+        end
+        
         if b.Reversal(ind) == 50
             share1_50 = share1_50 + 1;
         end
