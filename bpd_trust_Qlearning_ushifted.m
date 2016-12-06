@@ -23,7 +23,6 @@ function [posterior,out] = bpd_trust_Qlearning_ushifted(id, counter, datalocatio
 % posterior                     posterior distributions
 % out                           fit statistics, diagnostics
 
-
 %Set up input parser 
 p = inputParser;
 default_multisession = 1;
@@ -248,7 +247,7 @@ priors.SigmaX0 = diag([.3 0]);  % tracking value and prediction error
 options.priors = priors;
 
 options.verbose=1;
-options.DisplayWin=1;
+options.DisplayWin=0;
 options.GnFigs=0;
 
 %% model inversion
@@ -287,3 +286,10 @@ if ~isempty(params.local_data_dir)
         params.valence_p, params.valence_n, params.assymetry_choices, params.regret);
     save([params.local_data_dir filename]);
 end
+
+
+
+
+
+
+ 

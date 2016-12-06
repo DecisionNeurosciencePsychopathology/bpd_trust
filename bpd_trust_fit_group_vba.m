@@ -1,6 +1,11 @@
 function bpd_trust_fit_group_vba
+ jj=1;
+ hh=1;
+
+ 
 
 
+ 
 %Quick username check, and path setting, this may have to change depending
 %on the machine you are currently working on!
 os = computer;
@@ -68,8 +73,67 @@ for i = 1:length(ids)
         'local_data_dir', local_data_dir);
     L(i) = out.F;
     
-    
+try
     b=bpd_trustmakeregressor_group(id);
+    
+    %move the regressor files to thorndike
+    newfolder='/Volumes/bek/bsocial/bpd_trust/regs'; %folder to be place in within thorndike
+    moveregs('bpd_trust',num2str(id),newfolder);
+    
+    %write the ids that successfully ran into a cell
+    ID(jj,1)=id;
+    
+    
+    task={'bpd_trust'};
+    Task{jj,1}=task; 
+    
+    trialdone=fopen('idlog_bpdtrust.txt');
+    trialdone=fscanf(trialdone,'%d');
+    
+    trialdone1=0;
+    
+    for aa=1:length(trialdone)
+        if trialdone(aa,1) == id
+            trialdone1=1;
+        end
+    end
+    
+      
+    if trialdone1 == 1
+        td={'yes'};
+    else
+        td={'no'};
+    end
+    fMRI_Preprocess_Complete{jj,1}=td; 
+    
+    jj=jj+1;
+    
+    %turn completed cell into table
+    tt=table(ID,Task,fMRI_Preprocess_Complete);
+    save('completed','tt');
+    
+catch
+    disp(sprintf('\nUnable to run ID %d: does not have correct folder or file in Thorndike...\n',id))
+        
+    %put IDs that didn't run into table
+        ID2(hh,1)=id; 
+    
+        task={'bpd_trust'};
+        Task2{hh,1}=task; 
+        
+        hh=hh+1;
+        
+        tt2=table(ID2,Task2);
+        save('unable_to_run','tt2')
+end
+
+
+if exist('tt2')==0
+    ID2=0;
+    Task2={'bpd_trust'};
+    tt2=table(ID2,Task2);
+    save('unable_to_run','tt2')
+end
     
 end
 
