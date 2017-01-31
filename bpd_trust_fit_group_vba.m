@@ -112,8 +112,9 @@ try
     tt=table(ID,Task,fMRI_Preprocess_Complete);
     save('completed','tt');
     
-catch
-    disp(sprintf('\nUnable to run ID %d: does not have correct folder or file in Thorndike...\n',id))
+catch exception
+    
+    errorlog('bpdtrust',id,exception)
         
     %put IDs that didn't run into table
         ID2(hh,1)=id; 
