@@ -1,15 +1,14 @@
 function s = censorMovement(id,s,block)
 %Censor entire blocks if max movement is greater than 5 per block
 %Load in the data
-% path_of_motion_table = '/Users/polinavanyukov/Box Sync/Project Trust Game/data/processed/scan_behavior/group_data/fd_max.mat';
+path_of_motion_table = 'C:\kod\bpd_trust\aux_files\fd_max_output.csv';
+fd_max = readtable(path_of_motion_table);
 % load(path_of_motion_table);
-%load('fd_max.mat') %Change path as needed
+% load('fd_max.mat') %Change path as needed
 
 if ischar(id)
     id = str2double(id);
 end
-
-return %Just for now...
 
 %First get index of id or kick out
 id_idx=find(ismember(fd_max.Subjects,id), 1);

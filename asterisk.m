@@ -38,6 +38,7 @@ for index = 1:num_of_subjects
     cd(sprintf('%d', id))
 end
 
+% Sometimes it need to be cd ../..
 cd ..
 
 

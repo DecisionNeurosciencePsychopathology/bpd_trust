@@ -36,6 +36,7 @@ default_valence_n = 0;
 default_assymetry_choices = 0;
 default_regret = 0;
 default_local_data_dir = ''; %NOTE: unless provided workspace will not save
+default_graphics = 0;
 
 addRequired(p,'id',@isnumeric);
 addRequired(p,'counter',@isnumeric);
@@ -54,6 +55,13 @@ addParameter(p,'local_data_dir',default_local_data_dir,@isstr);
 %Return error when parameters don't match the schema
 p.KeepUnmatched = false; 
 
+%Graphics on/off switch
+if ~default_graphics
+    options.DisplayWin = 0;
+    options.GnFigs = 0;
+end
+
+
 %Parse Params
 parse(p,id,counter,datalocation,varargin{:})
 params = p.Results;
@@ -64,7 +72,7 @@ close all
 if counter == 0
     f_fname = @f_trust_Qlearn1; % evolution function (Q-learning) with a single hidden state, Q(share)
 else
-    f_fname = @f_trust_Qlearn_counter;% evolution function (Q-learning) with a single hidden state, Q(share), and counterfactual rewards
+    f_fname = @f_trust_Qlearn_counter_hybrid;% evolution function (Q-learning) with a single hidden state, Q(share), and counterfactual rewards
 end
 
 if params.assymetry_choices == 1 || params.sigmakappa == 0
@@ -77,10 +85,13 @@ end
 n_hidden_states = 2; 
 
 
-ntrials = 192; %Why is number of trials hardcoded?
+%ntrials = 192; %Why is number of trials hardcoded?
 
 %% Load subject's data
 load([datalocation filesep sprintf('trust%d',id)])
+
+ntrials = length(b.TrialNumber);
+
 
 %Not sure why this is here....
 if exist('filename','var')
@@ -248,7 +259,7 @@ priors.SigmaX0 = diag([.3 0]);  % tracking value and prediction error
 options.priors = priors;
 
 options.verbose=1;
-options.DisplayWin=1;
+%options.DisplayWin=0;
 options.GnFigs=0;
 
 %% model inversion
