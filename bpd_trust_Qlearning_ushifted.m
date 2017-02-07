@@ -1,10 +1,9 @@
-function [posterior,out] = bpd_trust_Qlearning_ushifted(id, counter, datalocation, varargin)
+function [posterior,out] = bpd_trust_Qlearning_ushifted(id, datalocation, varargin)
 % Model fitting of Qlearning to trust data for BPD study, using VBA-toolbox
 % Written by Polina Vanyukov, Alex Dombrovski, & Jonathan Wilson
 %
 % REQUIRED INPUTS:
 % id =           6-digit ID 
-% counter =      if using counterfactual feedback or not 0 | 1 
 % datalocation = Where the subjects .mat file is located
 %
 % OPTIONAL INPUTS:
@@ -18,6 +17,7 @@ function [posterior,out] = bpd_trust_Qlearning_ushifted(id, counter, datalocatio
 % assymetry_choices = 0 (default)       modelling assymetry in choices
 % regret = 0 (default)                  modeling regret
 % local_data_dir = '' (default)         where to store workspace of script
+% model = 'null' (default)              where model to be evaluated (i,e, which reward matrix to use)
 %
 % OUTPUTS:
 % posterior                     posterior distributions
@@ -37,9 +37,10 @@ default_assymetry_choices = 0;
 default_regret = 0;
 default_local_data_dir = ''; %NOTE: unless provided workspace will not save
 default_graphics = 0;
+default_model = 'null'; %Default model will always be NULL
 
 addRequired(p,'id',@isnumeric);
-addRequired(p,'counter',@isnumeric);
+%addRequired(p,'counter',@isnumeric);
 addRequired(p,'datalocation',@isstr);
 addParameter(p,'multisession',default_multisession,@isnumeric);
 addParameter(p,'fixed',default_fixed,@isnumeric);
@@ -51,6 +52,7 @@ addParameter(p,'valence_n',default_valence_n,@isnumeric);
 addParameter(p,'assymetry_choices',default_assymetry_choices,@isnumeric);
 addParameter(p,'regret',default_regret,@isnumeric);
 addParameter(p,'local_data_dir',default_local_data_dir,@isstr);
+addParameter(p,'model',default_model,@isstr);
 
 %Return error when parameters don't match the schema
 p.KeepUnmatched = false; 
@@ -63,16 +65,24 @@ end
 
 
 %Parse Params
-parse(p,id,counter,datalocation,varargin{:})
+parse(p,id,datalocation,varargin{:})
 params = p.Results;
 
 %Clear all open figs
 close all
 %% Evolution and observation functions
-if counter == 0
-    f_fname = @f_trust_Qlearn1; % evolution function (Q-learning) with a single hidden state, Q(share)
-else
-    f_fname = @f_trust_Qlearn_counter_hybrid;% evolution function (Q-learning) with a single hidden state, Q(share), and counterfactual rewards
+
+switch params.model
+    case 'null'
+        f_fname = @f_trust_Qlearn1; % evolution function (Q-learning) with a single hidden state, Q(share)
+    case 'subjectCounterfactual'
+        f_fname = @f_trust_Qlearn_counter_hybrid;
+    case 'subjectCounterfactual_regret'
+        f_fname = @f_trust_Qlearn_counter_hybrid_regret;
+    case 'trustee'
+        f_fname = @f_trust_Qlearn_counter_trustee;
+    otherwise
+        error('Model not found, see help for more details')
 end
 
 if params.assymetry_choices == 1 || params.sigmakappa == 0
@@ -91,18 +101,6 @@ n_hidden_states = 2;
 load([datalocation filesep sprintf('trust%d',id)])
 
 ntrials = length(b.TrialNumber);
-
-
-%Not sure why this is here....
-if exist('filename','var')
-        clear 'filename';
-    elseif exist('data_dir_str','var')
-        clear 'data_dir_str';
-    elseif exist('stringid','var')
-        clear 'stringid';
-    elseif exist('subdir','var')
-        clear 'subdir';
-end
 
 %Parse subjects data
 if not(exist('decisions'))
@@ -128,10 +126,8 @@ end
 actions = double(actions);
 u(1,:) = actions;
 
-%rewards = double(strcmp(b.TrusteeDecides(b.Order_RS>-999),'share')); %rewards including counterfactual ones (trustee's actions)
 rewards = double(strcmp(b.TrusteeDecides,'share')); %rewards including counterfactual ones (trustee's actions)
 rewards(rewards==0) = -1;
-%rewards(noresponse'==1) = -999;
 u(2,:) = rewards(1:ntrials)';
 
 %% Experimental design
@@ -174,22 +170,7 @@ options.inF.valence_n = params.valence_n;
 options.inF.assymetry_choices = params.assymetry_choices;
 options.inF.regret = params.regret;
 
-%% allocate feedback struture for simulations
-% fb.inH.er = 1;
-% fb.inH.vr = 0;
-% fb.h_fname = h_fname;
-% fb.indy = 1;
-% fb.indfb = 2;
-% u0 = [randn(1,25)>-0.25]; % possible feedbacks
-% fb.inH.u0 = u(2,:); % reinforcement history
-
 %% dimensions and options
-% simulation parameters
-% theta = sigm(0.75,struct('INV',1)); % learning rate = 0.75
-% phi = log(2); % inverse temperature = 2
-%x0 = zeros(n_hidden_states,1);
-% n_t = size(fb.inH.u0,2)+1; % number of trials
-
 n_t = size(u(2,:),2); % number of trials
 n_trustees = 4;
 if params.multisession
@@ -270,7 +251,7 @@ options.GnFigs=0;
 ConditionOrder  = unique(b.identity,'stable');
 out.design = ConditionOrder;
 
-h = figure(1);
+%h = figure(1);
 %savefig(h,sprintf('%d_counter%d_multisession%d_fixed%d_SigmaKappa%d_reputation%d_humanity%d_valence_p%d_valence_n%d_assymetry_choices%d_regret%d', id, counter, multisession, fixed, sigmakappa, reputation_sensitive, humanity, valence_p, valence_n, assymetry_choices, regret));
 
 %% get prediction errors
@@ -292,9 +273,14 @@ if ~isempty(params.local_data_dir)
         params.local_data_dir = [params.local_data_dir filesep];
     end
     
+    subdir = func2str(f_fname);
+    
+    if ~exist([params.local_data_dir subdir],'dir')
+        mkdir([params.local_data_dir subdir])
+    end
     %Save all params in file name
-    filename = sprintf('bpd_trust_%d_cntr%d_mltrun%d_fixed%d_kappa%d_rep%d_hum%d_val_p%d_val_n%d_as_choices%d_reg%d', id,...
-        counter,params.multisession, params.fixed, params.sigmakappa, params.reputation_sensitive, params.humanity,...
+    filename = sprintf('bpd_trust_%s_cntr%d_mltrun%d_fixed%d_kappa%d_rep%d_hum%d_val_p%d_val_n%d_as_choices%d_reg%d', id,...
+        params.model,params.multisession, params.fixed, params.sigmakappa, params.reputation_sensitive, params.humanity,...
         params.valence_p, params.valence_n, params.assymetry_choices, params.regret);
     save([params.local_data_dir filename]);
 end
