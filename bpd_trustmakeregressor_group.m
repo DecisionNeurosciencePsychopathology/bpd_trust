@@ -330,7 +330,7 @@ if not(str2double(id)==219956||str2double(id)==220017) %Remove later!
     % %     b.trusteeHCxp_shareVSkeep = b.trustee_HC.*b.shareVSkeep;
     % %     [b.stim_times.trusteeBYactionHC_fsl,b.stim_times.trusteeBYactionHC_spmg]=write3Ddeconv_startTimes(data_dump_str,feedback.event_beg,feedback.event_end,'HCxp_decision',b.trusteeHCxp_shareVSkeep,0);
     
-    gdlmwrite(strcat(data_dump_str, 'to_censor_motion_corr'),b.hrf_regs.to_censor','\t');
+    gdlmwrite(strcat(data_dump_str, sprintf('%sto_censor_motion_corr',num2str(id))),b.hrf_regs.to_censor','\t');
 end
 
 %call asterisk if there were 4 blocks

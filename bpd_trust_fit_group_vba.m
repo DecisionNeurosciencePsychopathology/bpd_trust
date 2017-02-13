@@ -83,6 +83,12 @@ for i = 1:length(ids)
 %     fprintf('File processing: %s\n', filename);
     id = ids(i);
     datalocation = [data_dir '/' num2str(id)];
+    
+    if ~exist([datalocation '/' sprintf('trust%d.mat',id)])
+        file = glob([datalocation  '/' '*_scan_*.txt']);
+        bpd_trustbehavior(data_dir,file{:});
+    end
+    
     %datalocation = [data_dir];
     %[posterior, out] = bpd_trust_Qlearning_ushifted(id, counter, multisession, fixed_params_across_runs, sigma_kappa, reputation_sensitive, humanity, valence_p, valence_n, assymetry_choices, regret);
     [posterior, out] = bpd_trust_Qlearning_ushifted(id, datalocation,...
@@ -94,11 +100,16 @@ for i = 1:length(ids)
     L(i) = out.F;
     
 try
-    b=bpd_trustmakeregressor_group(id);
+    %NB: IF we introduce a model loop this should only be ran once, though the PE regs will have to be ran more than once
+    b=bpd_trustmakeregressor_group(id); 
     
     %move the regressor files to thorndike
     newfolder='/Volumes/bek/bsocial/bpd_trust/regs'; %folder to be place in within thorndike
-    moveregs('bpd_trust',num2str(id),newfolder);
+    
+    %get file paths
+    scriptName = mfilename('fullpath');
+    [currentpath, filename, fileextension]= fileparts(scriptName);
+    moveregs(currentpath,num2str(id),newfolder);
     
     %write the ids that successfully ran into a cell
     ID(jj,1)=id;
@@ -107,7 +118,7 @@ try
     task={'bpd_trust'};
     Task{jj,1}=task; 
     
-    trialdone=fopen('idlog_bpdtrust.txt');
+    trialdone=fopen('idlog_bpdtrust.txt', 'a+');
     trialdone=fscanf(trialdone,'%d');
     
     trialdone1=0;
