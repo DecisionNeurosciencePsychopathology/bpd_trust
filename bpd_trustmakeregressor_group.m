@@ -42,7 +42,7 @@ total_trials=length(b.TrialNumber);
 b.scan_tr = .6;
 
 %deteremine number of blocks/trials per block
-run_asterisk =0; %Default moving forward
+b.run_asterisk =0; %Default moving forward
 
 if hallquist_subjs
     rsfname='08022016';
@@ -71,7 +71,7 @@ if ~isempty(strfind(rsfname,'072916')) || ~isempty(strfind(rsfname,'08022016'))
     trialsperblock= length(b.TrialNumber);
     blocknum= 1;
 else
-    run_asterisk =1;
+    b.run_asterisk =1;
     trialsperblock= 48;
     blocknum= 4;
     block_length= repmat(440,4,1);
@@ -120,9 +120,9 @@ if not(str2double(id)==219956||str2double(id)==220017) %Remove later!
     %data_dump_str = strcat(sprintf('C:/Users/wilsonj3/Desktop/hallquist_trust/regs/%d',id)); %Hallquist
     %data_dump_str = strcat(sprintf('regs/'));
     
-    if run_asterisk==1
-        data_dump_str= strcat(sprintf('regs/%d/',id), num2str(id));
-    end
+    %Update data string
+    data_dump_str= strcat([sprintf('regs/%d/',id), num2str(id)]);
+
     
     b.regs = [];
     
@@ -330,11 +330,11 @@ if not(str2double(id)==219956||str2double(id)==220017) %Remove later!
     % %     b.trusteeHCxp_shareVSkeep = b.trustee_HC.*b.shareVSkeep;
     % %     [b.stim_times.trusteeBYactionHC_fsl,b.stim_times.trusteeBYactionHC_spmg]=write3Ddeconv_startTimes(data_dump_str,feedback.event_beg,feedback.event_end,'HCxp_decision',b.trusteeHCxp_shareVSkeep,0);
     
-    gdlmwrite(strcat(data_dump_str, sprintf('%sto_censor_motion_corr',num2str(id))),b.hrf_regs.to_censor','\t');
+    gdlmwrite(strcat(data_dump_str, sprintf('to_censor_motion_corr')),b.hrf_regs.to_censor','\t');
 end
 
 %call asterisk if there were 4 blocks
-if run_asterisk== 1
+if b.run_asterisk== 1
     
     asterisk(id);
     
@@ -344,6 +344,8 @@ if run_asterisk== 1
     
 end
 
+%Update and save a more descriptive b structure
+save([data_dir_str '/trust' num2str(id)],'b');
 
 
 return

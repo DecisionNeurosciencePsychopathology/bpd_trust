@@ -3,7 +3,7 @@ function [b, id] = bpd_trustbehavior(data_dir,fname)
 % 2014-05: revision of the program for the trust game paradigm
 % Program that reads in a single data file
 
-id = regexp(fname,'\\[0-9]{6}\\','match');
+id = regexp(fname,'\\[0-9]{4,6}\\','match');
 id = str2double(regexprep(id{:},'\\',''));
 
 filename = sprintf('trust%d.mat',id);

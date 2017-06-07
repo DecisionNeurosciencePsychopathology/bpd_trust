@@ -278,10 +278,10 @@ if ~isempty(params.local_data_dir)
         mkdir([params.local_data_dir subdir])
     end
     %Save all params in file name
-    filename = sprintf('bpd_trust_%s_cntr%d_mltrun%d_fixed%d_kappa%d_rep%d_hum%d_val_p%d_val_n%d_as_choices%d_reg%d', id,...
+    filename = sprintf('bpd_trust_%d_model_%s_mltrun%d_fixed%d_kappa%d_rep%d_hum%d_val_p%d_val_n%d_as_choices%d_reg%d', id,...
         params.model,params.multisession, params.fixed, params.sigmakappa, params.reputation_sensitive, params.humanity,...
         params.valence_p, params.valence_n, params.assymetry_choices, params.regret);
-    save([params.local_data_dir filename]);
+    save([params.local_data_dir subdir filesep filename]);
 end
 
 

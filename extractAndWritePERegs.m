@@ -5,7 +5,7 @@
 subdirs={'f_trust_Qlearn_counter_hybrid'};
 
 %Extract the PEs
-trust_extract_PEs(subdirs)
+par=trust_extract_PEs_bpd(subdirs);
 
 %Really, really need to fix this cd stuff, it really is a pain to deal
 %with!
@@ -14,9 +14,11 @@ current_dir = pwd; %This should be trust_rl_VBA
 %Write the PEs
 for subdir = subdirs
     cd(current_dir)
-    trust_writeregs_PEs(subdir)
+    trust_writeregs_PEs_bpd(par,subdir);
     cd(current_dir)
-    asterisk(subdir) %Run asterisk script to handle the blocks
+    
+    %Remeber not all subjects have 4 blocks
+    asterisk_pe(subdir) %Run asterisk script to handle the blocks
 end
 
 
